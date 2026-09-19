@@ -10,24 +10,26 @@ A high-performance, zero-external-dependency [Model Context Protocol (MCP)](http
 
 ## ⚡ Key Capabilities
 
-* **Zero-Cloud Local P2P Sharing**: Deliver generated artifacts, code files, research papers, and images directly to smartphones, tablets, and laptops over the local network.
+* **Bidirectional Local P2P Sharing**:
+  * **Outbound (AI Agent $\rightarrow$ Device)**: Deliver generated artifacts, code files, research papers, and images directly to smartphones, tablets, and laptops.
+  * **Inbound (Device $\rightarrow$ AI Agent)**: Send photos, voice memos, logs, or documents from your phone directly into the agent's download folder.
 * **Direct Text & Clipboard Push**: Send code snippets, terminal commands, or notes straight to target devices without writing temporary files to disk.
-* **LAN Auto-Discovery**: Finds active LocalSend peers via UDP multicast (`224.0.0.167:53317`) or direct IP targets.
-* **Desktop App Co-existence**: Runs a persistent listener on port `53318` so both the official LocalSend desktop application (`53317`) and this MCP server run seamlessly together on the same machine.
-* **Clean LocalSend Favoriting**: Responds to `POST /api/localsend/v2/register` with `200 OK`, allowing you to add the agent to LocalSend's Favorites without connection errors.
+* **LAN Auto-Discovery**: Finds active LocalSend peers via UDP multicast (`224.0.0.167:53317`) and catches HTTP registration handshakes.
+* **Desktop App Co-existence**: Runs a persistent background listener on port `53318` so both the official LocalSend desktop application (`53317`) and this MCP server run seamlessly together on the same machine.
+* **Clean LocalSend Favoriting**: Actively responds to `POST /api/localsend/v2/register` with `200 OK`, allowing mobile and desktop LocalSend apps to favorite/star the agent without connection errors.
 * **In-Process X.509 Cryptography**: Generates TLS keys and ASN.1 DER certificates purely in-memory using Node.js crypto—**no external `openssl` binary required on Windows, Linux, or macOS**.
 
 ---
 
 ## 🛠️ MCP Tools Exposed
 
-| Tool | Description |
-| :--- | :--- |
-| `localsend_devices` | Scans the Wi-Fi/LAN for online LocalSend peers, returning their alias, IP, port, and device model. |
-| `localsend_send` | Sends files, directories, or direct text snippets to a peer by alias or IP. |
-| `localsend_status` | Displays local network IPs, active listening port, fingerprint, and inbox statistics. |
-| `localsend_history` | Lists files received into the agent's download directory. |
-| `localsend_setup` | Configures the broadcast alias, auto-save directory, and transport protocol. |
+| Tool | Parameters | Description |
+| :--- | :--- | :--- |
+| `localsend_devices` | `timeoutSeconds` (opt) | Scans the Wi-Fi/LAN for online LocalSend peers, returning their alias, IP, port, and device model. |
+| `localsend_send` | `to` (req), `files` (opt), `text` (opt), `pin` (opt) | Sends files, directories, or direct text snippets to a peer by alias or IP. |
+| `localsend_status` | none | Displays local network IPs, active listening port, fingerprint, and inbox statistics. |
+| `localsend_history` | none | Lists files received into the agent's download directory. |
+| `localsend_setup` | `alias` (opt), `downloadDir` (opt) | Configures the broadcast alias, auto-save directory, and transport protocol. |
 
 ---
 
@@ -45,11 +47,31 @@ npm run build
 
 ---
 
+## 🔄 Automated Git Synchronization (`sync.ps1`)
+
+The repository includes a dedicated PowerShell synchronization script that enforces pre-commit secret scans, automatically recompiles TypeScript when source files change, and formats conventional commits:
+
+```powershell
+# Routine build, commit, and push
+.\sync.ps1
+
+# Custom commit message
+.\sync.ps1 -m "feat(localsend): add automatic clipboard sync"
+
+# Safe rebase pull only
+.\sync.ps1 -PullOnly
+
+# Dry-run mode (preview without changing git state)
+.\sync.ps1 -WhatIf
+```
+
+---
+
 ## ⚙️ Configuration
 
 ### Antigravity (`mcp_servers` configuration)
 
-Add `localsend-mcp` to your MCP configuration:
+Add `localsend-mcp` to your Antigravity MCP settings:
 
 ```json
 {
@@ -79,7 +101,7 @@ Add `localsend-mcp` to your MCP configuration:
 
 ## 🧪 Usage Examples
 
-### 1. Discover Devices
+### 1. Discover Devices on LAN
 ```json
 {
   "name": "localsend_devices",
@@ -89,26 +111,34 @@ Add `localsend-mcp` to your MCP configuration:
 }
 ```
 
-### 2. Send an Artifact / PDF to your Phone
+### 2. Send an Artifact or Report to Your Phone
 ```json
 {
   "name": "localsend_send",
   "arguments": {
-    "to": "Aaradhya's iPhone",
+    "to": "V2029",
     "files": ["F:\\Aaradhya-Dev-Tamrakar\\brainstorm\\report\\main.pdf"]
   }
 }
 ```
 
-### 3. Send a Code Snippet / Text
+### 3. Push a Code Snippet Directly to Clipboard
 ```json
 {
   "name": "localsend_send",
   "arguments": {
     "to": "SFG16",
-    "text": "curl -s http://localhost:8000/health",
-    "textFileName": "command.txt"
+    "text": "Get-Process localsend_app | Select-Object Id, ProcessName",
+    "textFileName": "inspect.ps1"
   }
+}
+```
+
+### 4. Check Inbox for Files Sent From Mobile
+```json
+{
+  "name": "localsend_history",
+  "arguments": {}
 }
 ```
 
@@ -117,7 +147,7 @@ Add `localsend-mcp` to your MCP configuration:
 ## 🔒 Security & Privacy
 
 * **100% Local**: No internet connection, cloud servers, or third-party relays are used. All network packets stay strictly within your local subnet.
-* **Mutual TLS (mTLS)**: All transfers use TLS 1.3 encryption with client certificate presentation matching LocalSend v2 specification.
+* **Mutual TLS (mTLS)**: All transfers use TLS encryption with client certificate presentation matching the LocalSend v2 specification.
 * **Path Traversal Protection**: Remote file names are sanitized to prevent directory traversal attacks.
 
 ---
