@@ -21,6 +21,26 @@ function isHostAddress(val: string): boolean {
 function collectPayloads(paths: ReadonlyArray<string>): Payload[] {
   const payloads: Payload[] = [];
 
+  function walkDir(currentDir: string, rootParentDir: string) {
+    const entries = fs.readdirSync(currentDir, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = path.join(currentDir, entry.name);
+      if (entry.isDirectory()) {
+        walkDir(fullPath, rootParentDir);
+      } else if (entry.isFile()) {
+        const stat = fs.statSync(fullPath);
+        // Relative path starting with the directory name, normalized with forward slashes for LocalSend protocol
+        const relPath = path.relative(rootParentDir, fullPath).replace(/\\/g, "/");
+        payloads.push({
+          fileName: relPath,
+          path: fullPath,
+          size: stat.size,
+          modified: stat.mtime.toISOString(),
+        });
+      }
+    }
+  }
+
   for (const raw of paths) {
     const resolved = expandPath(raw);
     let stat: fs.Stats;
@@ -31,18 +51,8 @@ function collectPayloads(paths: ReadonlyArray<string>): Payload[] {
     }
 
     if (stat.isDirectory()) {
-      const entries = fs.readdirSync(resolved, { withFileTypes: true });
-      for (const entry of entries) {
-        if (!entry.isFile()) continue;
-        const childPath = path.join(resolved, entry.name);
-        const childStat = fs.statSync(childPath);
-        payloads.push({
-          fileName: entry.name,
-          path: childPath,
-          size: childStat.size,
-          modified: childStat.mtime.toISOString(),
-        });
-      }
+      // Walk directory recursively while preserving the top-level folder name
+      walkDir(resolved, path.dirname(resolved));
       continue;
     }
 

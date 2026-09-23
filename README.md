@@ -13,6 +13,7 @@ A high-performance, zero-external-dependency [Model Context Protocol (MCP)](http
 * **Bidirectional Local P2P Sharing**:
   * **Outbound (AI Agent $\rightarrow$ Device)**: Deliver generated artifacts, code files, research papers, and images directly to smartphones, tablets, and laptops.
   * **Inbound (Device $\rightarrow$ AI Agent)**: Send photos, voice memos, logs, or documents from your phone directly into the agent's download folder.
+* **Recursive Folder Hierarchy Preservation**: Automatically maps and retains directory trees using normalized relative paths (e.g. `Folder/sub/file.mp4`), enabling destination devices (like Android and iOS) to recreate and nest the full folder structure upon receipt.
 * **Direct Text & Clipboard Push**: Send code snippets, terminal commands, or notes straight to target devices without writing temporary files to disk.
 * **LAN Auto-Discovery**: Finds active LocalSend peers via UDP multicast (`224.0.0.167:53317`) and catches HTTP registration handshakes.
 * **Desktop App Co-existence**: Runs a persistent background listener on port `53318` so both the official LocalSend desktop application (`53317`) and this MCP server run seamlessly together on the same machine.
