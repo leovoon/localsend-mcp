@@ -1,3 +1,7 @@
+
+import { listAdbDevices, wakeAndLaunchLocalSend, getAdbDeviceIp, openUrlOnAndroid } from "./adb.js";
+import { startWebSharePortal } from "./webshare.js";
+
 /**
  * Tool definitions and execution handlers for LocalSend MCP Server.
  */
@@ -142,6 +146,43 @@ export const TOOLS = [
       properties: {},
     },
   },
+  {
+    name: "localsend_web_share",
+    description: "Launch an instant browser Web-Share portal (port 53319) with an inline terminal QR code for sharing files with mobile devices or receiving uploads without pairing.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        files: {
+          type: "array",
+          items: { type: "string" },
+          description: "Files to serve for downloading. Omit to run in upload mode.",
+        },
+        mode: {
+          type: "string",
+          enum: ["download", "upload"],
+          description: "Share portal mode (default: 'download').",
+        },
+        openOnAndroid: {
+          type: "boolean",
+          description: "If true and an ADB device is connected, automatically opens the share URL in the Android browser.",
+        },
+      },
+    },
+  },
+  {
+    name: "localsend_wake_android",
+    description: "Wakes an Android device via ADB and brings LocalSend to the foreground to ensure immediate Wi-Fi discoverability.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        deviceId: {
+          type: "string",
+          description: "Optional specific ADB device ID.",
+        },
+      },
+    },
+  },
+
   {
     name: "localsend_setup",
     description: "Update LocalSend MCP server configuration (alias, download directory, or transport).",
@@ -322,6 +363,34 @@ export async function handleToolCall(
         ];
 
         return { content: [{ type: "text", text: lines.join("\n") }] };
+      }
+
+      
+      case "localsend_web_share": {
+        const filePaths = Array.isArray(args?.files) ? (args.files as string[]) : [];
+        const mode = (args?.mode as 'download' | 'upload') || (filePaths.length > 0 ? 'download' : 'upload');
+        const openOnAndroid = Boolean(args?.openOnAndroid);
+
+        const portal = await startWebSharePortal(filePaths, mode);
+        let message = `**LocalSend Web-Share Portal Active**\n\n* **URL:** ${portal.url}\n* **Mode:** ${mode}\n\n` +
+          `**Scan QR Code from Phone / Tablet:**\n` +
+          `\`\`\`\n${portal.qrTerminal}\n\`\`\``;
+
+        if (openOnAndroid) {
+          const adbRes = await openUrlOnAndroid(portal.url);
+          message += `\n\n* **ADB Status:** ${adbRes.message}`;
+        }
+
+        return { content: [{ type: "text", text: message }] };
+      }
+
+      case "localsend_wake_android": {
+        const deviceId = args?.deviceId ? String(args.deviceId) : undefined;
+        const result = await wakeAndLaunchLocalSend(deviceId);
+        return {
+          content: [{ type: "text", text: result.message }],
+          isError: !result.success,
+        };
       }
 
       case "localsend_setup": {
