@@ -1,3 +1,5 @@
+mod discovery;
+
 use rmcp::{
     ServerHandler,
     handler::server::tool::ToolCallContext,
@@ -5,7 +7,7 @@ use rmcp::{
         CallToolRequestParam, CallToolResult, ListToolsResult, PaginatedRequestParam,
         ServerCapabilities, ServerInfo,
     },
-    schemars, tool,
+    tool,
 };
 use rmcp::ServiceExt;
 
@@ -20,11 +22,7 @@ impl LocalSendMcp {
 
     #[tool(description = "Scan LAN for LocalSend peers")]
     pub async fn localsend_devices(&self) -> String {
-        // The localsend crate binds UDP 53317 directly and panics when the
-        // port is already in use (e.g. by the desktop LocalSend app), so it
-        // cannot coexist. Discovery needs a reimplementation using an
-        // ephemeral receiver port; pending.
-        "discovery not yet available in Rust build (port 53317 in use)".to_string()
+        discovery::scan(3000).await
     }
 }
 
