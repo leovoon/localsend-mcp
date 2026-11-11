@@ -1,5 +1,4 @@
-mod discovery;
-mod send;
+use localsend_mcp_rust::{discovery, send};
 
 use rmcp::{
     ServerHandler,

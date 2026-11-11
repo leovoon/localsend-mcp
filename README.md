@@ -15,7 +15,7 @@ A high-performance, zero-external-dependency [Model Context Protocol (MCP)](http
   * **Inbound (Device $\rightarrow$ AI Agent)**: Send photos, voice memos, logs, or documents from your phone directly into the agent's download folder.
 * **Recursive Folder Hierarchy Preservation**: Automatically maps and retains directory trees using normalized relative paths (e.g. `Folder/sub/file.mp4`), enabling destination devices (like Android and iOS) to recreate and nest the full folder structure upon receipt.
 * **Direct Text & Clipboard Push**: Send code snippets, terminal commands, or notes straight to target devices without writing temporary files to disk.
-* **LAN Auto-Discovery**: Finds active LocalSend peers via UDP multicast (`224.0.0.167:53317`) and catches HTTP registration handshakes.
+* **LAN Auto-Discovery**: Triple-redundant peer discovery — mDNS browse/resolve (`_localsend._tcp`), active UDP broadcast + multicast ping (`224.0.0.167:53317` / `255.255.255.255`), and HTTP registration handshakes — with a 20s in-process cache. Sending by **alias** resolves via discovery instead of treating the alias as a DNS hostname.
 * **Desktop App Co-existence**: Runs a persistent background listener on port `53318` so both the official LocalSend desktop application (`53317`) and this MCP server run seamlessly together on the same machine.
 * **Clean LocalSend Favoriting**: Actively responds to `POST /api/localsend/v2/register` with `200 OK`, allowing mobile and desktop LocalSend apps to favorite/star the agent without connection errors.
 * **In-Process X.509 Cryptography**: Generates TLS keys and ASN.1 DER certificates purely in-memory using Node.js crypto—**no external `openssl` binary required on Windows, Linux, or macOS**.
@@ -26,8 +26,8 @@ A high-performance, zero-external-dependency [Model Context Protocol (MCP)](http
 
 | Tool | Parameters | Description |
 | :--- | :--- | :--- |
-| `localsend_devices` | `timeoutSeconds` (opt) | Scans the Wi-Fi/LAN for online LocalSend peers, returning their alias, IP, port, and device model. |
-| `localsend_send` | `to` (req), `files` (opt), `text` (opt), `pin` (opt) | Sends files, directories, or direct text snippets to a peer by alias or IP. |
+| `localsend_devices` | `timeoutSeconds` (opt) | Scans the Wi-Fi/LAN for online LocalSend peers (mDNS + UDP probe + registration handshake), returning their alias, IP, port, and device model. |
+| `localsend_send` | `to` (req), `files` (opt), `text` (opt), `pin` (opt) | Sends files, directories, or direct text snippets to a peer by alias or IP. Aliases are resolved via discovery (mDNS), not DNS. |
 | `localsend_status` | none | Displays local network IPs, active listening port, fingerprint, and inbox statistics. |
 | `localsend_history` | none | Lists files received into the agent's download directory. |
 | `localsend_setup` | `alias` (opt), `downloadDir` (opt) | Configures the broadcast alias, auto-save directory, and transport protocol. |

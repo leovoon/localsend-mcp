@@ -3,18 +3,17 @@ use std::fs;
 use std::path::Path;
 
 pub async fn send(to: String, files: Vec<String>, text: Option<String>) -> String {
-    // Resolve target IP/port
+    // Resolve target IP/port: literal IP, or ask discovery for the alias.
     let (ip, port) = if to.parse::<std::net::IpAddr>().is_ok() {
         (to.clone(), 53317u16)
     } else {
-        // discovery scan
-        match crate::discovery::scan(2000).await {
-            s if s.contains(&to) => {
-                // parse "alias ip:port" not robust; fallback to IP parse failed, try find line
-                // We'll just use to as host with default port
-                (to.clone(), 53317u16)
+        match crate::discovery::find_alias(&to).await {
+            Some(p) => (p.ip, p.port),
+            None => {
+                return format!(
+                    "device '{to}' not found on LAN. Run localsend_devices to see available peers."
+                );
             }
-            _ => (to.clone(), 53317u16),
         }
     };
 
