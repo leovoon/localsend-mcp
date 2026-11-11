@@ -1,4 +1,5 @@
 mod discovery;
+mod send;
 
 use rmcp::{
     ServerHandler,
@@ -8,6 +9,7 @@ use rmcp::{
         ServerCapabilities, ServerInfo,
     },
     tool,
+    model::Tool,
 };
 use rmcp::ServiceExt;
 
@@ -24,6 +26,7 @@ impl LocalSendMcp {
     pub async fn localsend_devices(&self) -> String {
         discovery::scan(3000).await
     }
+
 }
 
 impl ServerHandler for LocalSendMcp {
@@ -36,6 +39,19 @@ impl ServerHandler for LocalSendMcp {
             tools: vec![
                 LocalSendMcp::localsend_status_tool_attr(),
                 LocalSendMcp::localsend_devices_tool_attr(),
+                Tool::new(
+                    "localsend_send",
+                    "Send files/text to a LocalSend device by alias or IP",
+                    serde_json::json!({
+                        "type":"object",
+                        "properties":{
+                            "to":{"type":"string"},
+                            "files":{"type":"array","items":{"type":"string"}},
+                            "text":{"type":"string"}
+                        },
+                        "required":["to"]
+                    }).as_object().cloned().unwrap(),
+                ),
             ],
             next_cursor: None,
         })
@@ -46,14 +62,22 @@ impl ServerHandler for LocalSendMcp {
         request: CallToolRequestParam,
         context: rmcp::service::RequestContext<rmcp::RoleServer>,
     ) -> Result<CallToolResult, rmcp::Error> {
-        let tcc = ToolCallContext::new(self, request, context);
-        let res = match tcc.name() {
+        let tool_name = request.name.clone();
+        let args = request.arguments.clone();
+        let res = match tool_name.as_ref() {
             "localsend_status" => {
                 let r = self.localsend_status().await;
                 rmcp::model::CallToolResult::success(vec![rmcp::model::Content::text(r)])
             }
             "localsend_devices" => {
                 let r = self.localsend_devices().await;
+                rmcp::model::CallToolResult::success(vec![rmcp::model::Content::text(r)])
+            }
+            "localsend_send" => {
+                let to = args.as_ref().and_then(|a| a.get("to")).and_then(|v| v.as_str()).unwrap_or("").to_string();
+                let files = args.as_ref().and_then(|a| a.get("files")).and_then(|v| v.as_array()).map(|a| a.iter().filter_map(|x| x.as_str().map(|s| s.to_string())).collect()).unwrap_or_default();
+                let text = args.as_ref().and_then(|a| a.get("text")).and_then(|v| v.as_str()).map(|s| s.to_string());
+                let r = send::send(to, files, text).await;
                 rmcp::model::CallToolResult::success(vec![rmcp::model::Content::text(r)])
             }
             _ => return Err(rmcp::Error::invalid_params("method not found", None)),
