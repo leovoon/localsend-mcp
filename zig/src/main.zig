@@ -1,13 +1,19 @@
 const std = @import("std");
 const mcp = @import("mcp");
+const cfg = @import("config.zig");
+
+
 
 const status_schema =
-    \\{"name":"localsend_status","description":"Show local network info.","inputSchema":{"type":"object","properties":{}}}
+    \\{"name":"localsend_status","description":"Show local network info and config.","inputSchema":{"type":"object","properties":{}}}
 ;
 
 fn status(alloc: std.mem.Allocator, args: *const std.json.ObjectMap, out: *std.ArrayList(u8)) void {
     _ = args;
-    out.appendSlice(alloc, "localsend-mcp zig build ok") catch {};
+    const dd = cfg.defaultDownloadDir(alloc) catch "unknown";
+    out.appendSlice(alloc, "download_dir=") catch {};
+    out.appendSlice(alloc, dd) catch {};
+    out.appendSlice(alloc, "\n") catch {};
 }
 
 const tools = mcp.registry.Registry(&.{
