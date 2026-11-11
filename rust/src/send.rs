@@ -18,9 +18,17 @@ pub async fn send(to: String, files: Vec<String>, text: Option<String>) -> Strin
         }
     };
 
-    let client = match reqwest::Client::builder()
-        .danger_accept_invalid_certs(true)
-        .build() {
+    let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_string());
+    let cert_path = format!("{}/.localsend-mcp/cert.pem", home);
+    let key_path = format!("{}/.localsend-mcp/key.pem", home);
+    let mut builder = reqwest::Client::builder().danger_accept_invalid_certs(true);
+    if let (Ok(cert), Ok(key)) = (std::fs::read_to_string(&cert_path), std::fs::read_to_string(&key_path)) {
+        let pem = format!("{}{}", cert, key);
+        if let Ok(ident) = reqwest::Identity::from_pem(pem.as_bytes()) {
+            builder = builder.identity(ident);
+        }
+    }
+    let client = match builder.build() {
         Ok(c) => c,
         Err(e) => return format!("client error: {e}"),
     };
@@ -75,7 +83,7 @@ pub async fn send(to: String, files: Vec<String>, text: Option<String>) -> Strin
     let url = format!("https://{}:{}/api/localsend/v2/prepare-upload", ip, port);
     let resp = match client.post(&url).json(&prepare_body).send().await {
         Ok(r) => r,
-        Err(e) => return format!("prepare request failed: {e}"),
+        Err(e) => return format!("prepare request failed: {e:?}"),
     };
     if resp.status() == 204 {
         return "recipient declined".to_string();
