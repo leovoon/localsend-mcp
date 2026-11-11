@@ -3,6 +3,6 @@
 async fn main() {
     let r = localsend_mcp_rust::discovery::scan(3000).await;
     println!("scan:\n{r}");
-    let fa = localsend_mcp_rust::discovery::find_alias("Neon").await;
-    println!("find_alias(Neon) = {fa:?}");
+    let fa = localsend_mcp_rust::discovery::find_alias("MyDevice").await;
+    println!("find_alias(MyDevice) = {fa:?}");
 }
