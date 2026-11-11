@@ -19,7 +19,7 @@ export function getConfigFile(): string {
 export function getDefaultConfig(): LocalSendConfig {
   const hostname = os.hostname();
   const tls = ensureTlsMaterial();
-  const home = process.env.USERPROFILE || process.env.HOME || os.homedir();
+  const home = process.env.HOME || process.env.USERPROFILE || os.homedir();
   const downloadDir = path.join(home, "Downloads");
 
   return {

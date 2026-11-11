@@ -36,8 +36,8 @@ A high-performance, zero-external-dependency [Model Context Protocol (MCP)](http
 
 ## 🚀 Installation & Build
 
-```powershell
-cd F:\Aaradhya-Dev-Tamrakar\localsend-mcp
+```bash
+cd ~/personal/localsend-mcp
 
 # Install dependencies
 npm install
@@ -48,22 +48,22 @@ npm run build
 
 ---
 
-## 🔄 Automated Git Synchronization (`sync.ps1`)
+## 🔄 Automated Git Synchronization (`sync.sh`)
 
-The repository includes a dedicated PowerShell synchronization script that enforces pre-commit secret scans, automatically recompiles TypeScript when source files change, and formats conventional commits:
+The repository includes a dedicated bash synchronization script that enforces pre-commit secret scans, automatically recompiles TypeScript when source files change, and formats conventional commits:
 
-```powershell
+```bash
 # Routine build, commit, and push
-.\sync.ps1
+./sync.sh
 
 # Custom commit message
-.\sync.ps1 -m "feat(localsend): add automatic clipboard sync"
+./sync.sh -m "feat(localsend): add automatic clipboard sync"
 
 # Safe rebase pull only
-.\sync.ps1 -PullOnly
+./sync.sh --pull-only
 
 # Dry-run mode (preview without changing git state)
-.\sync.ps1 -WhatIf
+./sync.sh --what-if
 ```
 
 ---
@@ -79,7 +79,7 @@ Add `localsend-mcp` to your Antigravity MCP settings:
   "mcpServers": {
     "localsend": {
       "command": "node",
-      "args": ["F:\\Aaradhya-Dev-Tamrakar\\localsend-mcp\\dist\\index.js"]
+      "args": ["/Users/leovoon/personal/localsend-mcp/dist/index.js"]
     }
   }
 }
@@ -92,7 +92,7 @@ Add `localsend-mcp` to your Antigravity MCP settings:
   "mcpServers": {
     "localsend": {
       "command": "node",
-      "args": ["F:\\Aaradhya-Dev-Tamrakar\\localsend-mcp\\dist\\index.js"]
+      "args": ["/Users/leovoon/personal/localsend-mcp/dist/index.js"]
     }
   }
 }
@@ -118,7 +118,7 @@ Add `localsend-mcp` to your Antigravity MCP settings:
   "name": "localsend_send",
   "arguments": {
     "to": "V2029",
-    "files": ["F:\\Aaradhya-Dev-Tamrakar\\brainstorm\\report\\main.pdf"]
+    "files": ["/Users/leovoon/personal/brainstorm/report/main.pdf"]
   }
 }
 ```
@@ -129,8 +129,8 @@ Add `localsend-mcp` to your Antigravity MCP settings:
   "name": "localsend_send",
   "arguments": {
     "to": "SFG16",
-    "text": "Get-Process localsend_app | Select-Object Id, ProcessName",
-    "textFileName": "inspect.ps1"
+    "text": "ps aux | grep localsend",
+    "textFileName": "inspect.sh"
   }
 }
 ```

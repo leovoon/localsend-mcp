@@ -21,7 +21,7 @@ export interface TlsMaterial {
 }
 
 export function getCertDirectory(): string {
-  const home = process.env.USERPROFILE || process.env.HOME || os.homedir();
+  const home = process.env.HOME || process.env.USERPROFILE || os.homedir();
   return path.join(home, ".localsend-mcp");
 }
 
