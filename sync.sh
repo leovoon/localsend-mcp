@@ -118,16 +118,16 @@ if [[ -n "$added_lines" ]]; then
   patterns=(
     'AKIA[0-9A-Z]{16}'
     'sk-[a-zA-Z0-9]{20,}'
-    'sk-ant-[a-zA-Z0-9\-]{20,}'
+    'sk-ant-[a-zA-Z0-9-]{20,}'
     'ghp_[a-zA-Z0-9]{36}'
     'github_pat_[a-zA-Z0-9_]{20,}'
-    'AIza[0-9A-Za-z\-_]{35}'
-    'xox[baprs]-[0-9a-zA-Z\-]{10,}'
+    'AIza[0-9A-Za-z_-]{35}'
+    'xox[baprs]-[0-9a-zA-Z-]{10,}'
     '-----BEGIN (RSA|EC|OPENSSH|PGP|DSA)? ?PRIVATE KEY-----'
   )
   while IFS= read -r line; do
     for p in "${patterns[@]}"; do
-      if echo "$line" | grep -Eq "$p"; then
+      if printf '%s\n' "$line" | grep -Eq -- "$p"; then
         fail "CRITICAL: Secret scanner blocked commit! Pattern: $p"
         secret_hits=1
         break
