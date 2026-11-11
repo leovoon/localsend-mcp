@@ -1,0 +1,12 @@
+.{
+    .name = .localsend_mcp_zig,
+    .version = "0.1.0",
+    .fingerprint = 0x4ea30c39e623abe5,
+    .minimum_zig_version = "0.17.0",
+    .dependencies = .{
+        .mcp_zig = .{
+            .path = "deps/mcp-zig",
+        },
+    },
+    .paths = .{ "build.zig", "build.zig.zon", "src" },
+}
